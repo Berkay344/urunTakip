@@ -6,31 +6,37 @@
     <title>Ürün Takip Sistemi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 600px;
-            margin-top: 50px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        table {
-            margin-top: 20px;
-            border: 1px solid black;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-            font-weight: bold;
-        }
-        .title {
-            font-weight: bold;
-        }
-    </style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .container {
+        max-width: 600px;
+        margin-top: 50px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    table {
+        margin-top: 20px;
+        border: 1px solid black;
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+        font-weight: bold;
+    }
+    .title {
+        font-weight: bold;
+    }
+    .btn {
+        font-weight: bold; /* Buton yazılarını koyu yap */
+    }
+    .btn-warning {
+        color: black !important; /* Sarı butonun yazısını siyah yap */
+    }
+</style>
 </head>
 <body>
     <div class="container">
@@ -45,24 +51,42 @@
             <button class="btn btn-primary" onclick="addProduct()">Kaydet</button>
             <button class="btn btn-success" onclick="showProducts()">Ürünleri Göster</button>
             <button class="btn btn-danger" onclick="clearProducts()">Tüm Verileri Sil</button>
+            <button class="btn btn-warning" onclick="showFinishedProducts()">Biten Ürünleri Göster</button>
         </div>
+
+        <h3 class="text-center text-primary mt-3">Ürün Listesi</h3>
         <table class="table table-striped mt-3">
             <thead class="table-dark">
                 <tr>
+                    <th>Seç</th>
                     <th>Ürün Adı</th>
                     <th>Adet</th>
-                    <th>Tarih</th>
+                    <th>Geliş Tarihi</th>
                 </tr>
             </thead>
             <tbody id="productTable"></tbody>
         </table>
+
+        <h3 class="text-center text-primary mt-4">Biten Ürünler ve Geçen Süre</h3>
+        <table class="table table-striped mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>Ürün Adı</th>
+                    <th>Hafta</th>
+                    <th>Gün</th>
+                    <th>Ay</th>
+                </tr>
+            </thead>
+            <tbody id="finishedTable"></tbody>
+        </table>
     </div>
+
     <script>
         function addProduct() {
-            const product = document.getElementById('product').value;
-            const quantity = document.getElementById('quantity').value;
-            const date = new Date().toLocaleDateString('tr-TR');
-            
+            const product = document.getElementById('product').value.trim();
+            const quantity = document.getElementById('quantity').value.trim();
+            const date = new Date().toISOString(); // ISO formatında tarih kaydediyoruz.
+
             if (product && quantity) {
                 const products = JSON.parse(localStorage.getItem('products')) || [];
                 products.push({ product, quantity, date });
@@ -78,11 +102,48 @@
         function showProducts() {
             const products = JSON.parse(localStorage.getItem('products')) || [];
             const table = document.getElementById('productTable');
-            table.innerHTML = '';
-            
-            products.forEach(({ product, quantity, date }) => {
-                const row = `<tr><td>${product}</td><td>${quantity}</td><td>${date}</td></tr>`;
+            table.innerHTML = ''; // Önce tabloyu temizliyoruz.
+
+            products.forEach(({ product, quantity, date }, index) => {
+                const formattedDate = new Date(date).toLocaleDateString('tr-TR');
+                const row = `
+                    <tr>
+                        <td><input type="checkbox" class="product-checkbox" data-index="${index}"></td>
+                        <td>${product}</td>
+                        <td>${quantity}</td>
+                        <td>${formattedDate}</td>
+                    </tr>
+                `;
                 table.innerHTML += row;
+            });
+        }
+
+        function showFinishedProducts() {
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+            const finishedTable = document.getElementById('finishedTable');
+            finishedTable.innerHTML = '';
+
+            const checkboxes = document.querySelectorAll('.product-checkbox');
+            checkboxes.forEach((checkbox) => {
+                if (checkbox.checked) {
+                    const index = checkbox.getAttribute('data-index');
+                    const { product, date } = products[index];
+
+                    const currentDate = new Date();
+                    const productDate = new Date(date);
+
+                    if (!isNaN(productDate.getTime())) {
+                        const diffTime = currentDate - productDate;
+                        const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        const weeks = Math.floor(days / 7);
+                        const months = Math.floor(days / 30);
+
+                        const row = `<tr><td>${product}</td><td>${weeks}</td><td>${days}</td><td>${months}</td></tr>`;
+                        finishedTable.innerHTML += row;
+                    } else {
+                        alert('Geçersiz tarih algılandı. Lütfen ürünleri tekrar kaydedin.');
+                    }
+                }
             });
         }
 
@@ -90,6 +151,7 @@
             if (confirm('Tüm verileri silmek istediğinize emin misiniz?')) {
                 localStorage.removeItem('products');
                 document.getElementById('productTable').innerHTML = '';
+                document.getElementById('finishedTable').innerHTML = '';
                 alert('Tüm veriler silindi!');
             }
         }
