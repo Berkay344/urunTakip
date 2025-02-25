@@ -31,10 +31,21 @@
         font-weight: bold;
     }
     .btn {
-        font-weight: bold; /* Buton yazılarını koyu yap */
+        font-weight: bold;
     }
     .btn-warning {
-        color: black !important; /* Sarı butonun yazısını siyah yap */
+        color: black !important;
+    }
+    .btn-success {
+        color: black !important;
+    }
+    .btn-warning:hover {
+        background-color: #ffc107;
+        color: black;
+    }
+    .btn-success:hover {
+        background-color: #28a745;
+        color: black;
     }
 </style>
 </head>
@@ -52,16 +63,17 @@
             <button class="btn btn-success" onclick="showProducts()">Ürünleri Göster</button>
             <button class="btn btn-danger" onclick="clearProducts()">Tüm Verileri Sil</button>
             <button class="btn btn-warning" onclick="showFinishedProducts()">Biten Ürünleri Göster</button>
+            <button class="btn btn-info" onclick="showMissingList()">Eksik LİSTESİ GÖRÜNTÜLE</button>
         </div>
 
         <h3 class="text-center text-primary mt-3">Ürün Listesi</h3>
         <table class="table table-striped mt-3">
             <thead class="table-dark">
                 <tr>
-                    <th>Seç</th>
                     <th>Ürün Adı</th>
                     <th>Adet</th>
                     <th>Geliş Tarihi</th>
+                    <th>İşlemler</th>
                 </tr>
             </thead>
             <tbody id="productTable"></tbody>
@@ -79,13 +91,26 @@
             </thead>
             <tbody id="finishedTable"></tbody>
         </table>
+
+        <h3 class="text-center text-primary mt-4">Eksik Ürünler</h3>
+        <table class="table table-striped mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>Ürün Adı</th>
+                    <th>Geçen Süre (Gün)</th>
+                    <th>Geçen Süre (Hafta)</th>
+                    <th>Geçen Süre (Ay)</th>
+                </tr>
+            </thead>
+            <tbody id="missingTable"></tbody>
+        </table>
     </div>
 
     <script>
         function addProduct() {
             const product = document.getElementById('product').value.trim();
             const quantity = document.getElementById('quantity').value.trim();
-            const date = new Date().toISOString(); // ISO formatında tarih kaydediyoruz.
+            const date = new Date().toISOString();
 
             if (product && quantity) {
                 const products = JSON.parse(localStorage.getItem('products')) || [];
@@ -102,60 +127,136 @@
         function showProducts() {
             const products = JSON.parse(localStorage.getItem('products')) || [];
             const table = document.getElementById('productTable');
-            table.innerHTML = ''; // Önce tabloyu temizliyoruz.
+            table.innerHTML = '';
 
             products.forEach(({ product, quantity, date }, index) => {
                 const formattedDate = new Date(date).toLocaleDateString('tr-TR');
                 const row = `
                     <tr>
-                        <td><input type="checkbox" class="product-checkbox" data-index="${index}"></td>
                         <td>${product}</td>
                         <td>${quantity}</td>
                         <td>${formattedDate}</td>
+                        <td>
+                            <button class="btn btn-success" onclick="editProduct(${index})">Düzenle</button>
+                            <button class="btn btn-danger" onclick="deleteProduct(${index})">Sil</button>
+                            <button class="btn btn-warning" onclick="markAsFinished(${index})">Bitti</button>
+                        </td>
                     </tr>
                 `;
                 table.innerHTML += row;
             });
         }
 
-        function showFinishedProducts() {
+        function markAsFinished(index) {
             const products = JSON.parse(localStorage.getItem('products')) || [];
-            const finishedTable = document.getElementById('finishedTable');
-            finishedTable.innerHTML = '';
+            const product = products[index];
+            const finishedProducts = JSON.parse(localStorage.getItem('finishedProducts')) || [];
+            finishedProducts.push(product);
 
-            const checkboxes = document.querySelectorAll('.product-checkbox');
-            checkboxes.forEach((checkbox) => {
-                if (checkbox.checked) {
-                    const index = checkbox.getAttribute('data-index');
-                    const { product, date } = products[index];
+            // Ürün bitmiş olarak işaretleniyor
+            products.splice(index, 1);
+            localStorage.setItem('products', JSON.stringify(products));
+            localStorage.setItem('finishedProducts', JSON.stringify(finishedProducts));
 
-                    const currentDate = new Date();
-                    const productDate = new Date(date);
+            showProducts(); // Ürünleri tekrar göster
+            showFinishedProducts(); // Biten ürünleri göster
+        }
 
-                    if (!isNaN(productDate.getTime())) {
-                        const diffTime = currentDate - productDate;
-                        const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        const weeks = Math.floor(days / 7);
-                        const months = Math.floor(days / 30);
+        function showFinishedProducts() {
+            const finishedProducts = JSON.parse(localStorage.getItem('finishedProducts')) || [];
+            const table = document.getElementById('finishedTable');
+            table.innerHTML = '';
 
-                        const row = `<tr><td>${product}</td><td>${weeks}</td><td>${days}</td><td>${months}</td></tr>`;
-                        finishedTable.innerHTML += row;
-                    } else {
-                        alert('Geçersiz tarih algılandı. Lütfen ürünleri tekrar kaydedin.');
-                    }
-                }
+            finishedProducts.forEach(({ product, date }, index) => {
+                const formattedDate = new Date(date).toLocaleDateString('tr-TR');
+                const currentDate = new Date();
+                const diffTime = currentDate - new Date(date);
+                const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                const weeks = Math.floor(days / 7);
+                const months = Math.floor(days / 30);
+
+                const row = `
+                    <tr>
+                        <td>${product}</td>
+                        <td>${weeks}</td>
+                        <td>${days}</td>
+                        <td>${months}</td>
+                    </tr>
+                `;
+                table.innerHTML += row;
             });
         }
 
-        function clearProducts() {
-            if (confirm('Tüm verileri silmek istediğinize emin misiniz?')) {
-                localStorage.removeItem('products');
-                document.getElementById('productTable').innerHTML = '';
-                document.getElementById('finishedTable').innerHTML = '';
-                alert('Tüm veriler silindi!');
+        function showMissingList() {
+            const finishedProducts = JSON.parse(localStorage.getItem('finishedProducts')) || [];
+            const missingTable = document.getElementById('missingTable');
+            missingTable.innerHTML = '';
+
+            finishedProducts.forEach(({ product, date }) => {
+                const currentDate = new Date();
+                const diffTime = currentDate - new Date(date);
+                const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                const weeks = Math.floor(days / 7);
+                const months = Math.floor(days / 30);
+
+                const row = `
+                    <tr>
+                        <td>${product}</td>
+                        <td>${days}</td>
+                        <td>${weeks}</td>
+                        <td>${months}</td>
+                    </tr>
+                `;
+                missingTable.innerHTML += row;
+            });
+        }
+
+        function deleteProduct(index) {
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+            products.splice(index, 1);
+            localStorage.setItem('products', JSON.stringify(products));
+            showProducts();
+        }
+
+        function editProduct(index) {
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+            const product = products[index];
+            document.getElementById('product').value = product.product;
+            document.getElementById('quantity').value = product.quantity;
+
+            // Kaydet butonu tıklandığında mevcut ürünü güncelle
+            document.querySelector('.btn-primary').textContent = 'Güncelle';
+            document.querySelector('.btn-primary').onclick = function() {
+                updateProduct(index);
+            };
+        }
+
+        function updateProduct(index) {
+            const updatedProduct = document.getElementById('product').value.trim();
+            const updatedQuantity = document.getElementById('quantity').value.trim();
+
+            if (updatedProduct && updatedQuantity) {
+                const products = JSON.parse(localStorage.getItem('products')) || [];
+                products[index] = { product: updatedProduct, quantity: updatedQuantity, date: products[index].date };
+                localStorage.setItem('products', JSON.stringify(products));
+                alert('Ürün başarıyla güncellendi!');
+                showProducts(); // Güncellenen ürünleri göster
+                document.getElementById('product').value = '';
+                document.getElementById('quantity').value = '';
+                document.querySelector('.btn-primary').textContent = 'Kaydet'; // Buton metnini eski haline getir
+                document.querySelector('.btn-primary').onclick = addProduct; // Kaydet işlevini eski haline getir
+            } else {
+                alert('Lütfen tüm alanları doldurun!');
             }
         }
+
+        function clearProducts() {
+            localStorage.removeItem('products');
+            localStorage.removeItem('finishedProducts');
+            showProducts();
+            showFinishedProducts();
+            showMissingList();
+        }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
