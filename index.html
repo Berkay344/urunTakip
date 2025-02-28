@@ -4,258 +4,178 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ürün Takip Sistemi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-    body {
-        background-color: #f8f9fa;
-    }
-    .container {
-        max-width: 600px;
-        margin-top: 50px;
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    table {
-        margin-top: 20px;
-        border: 1px solid black;
-    }
-    th, td {
-        border: 1px solid black;
-        padding: 8px;
-        text-align: left;
-        font-weight: bold;
-    }
-    .title {
-        font-weight: bold;
-    }
-    .btn {
-        font-weight: bold;
-    }
-    .btn-warning {
-        color: black !important;
-    }
-    .btn-success {
-        color: black !important;
-    }
-    .btn-warning:hover {
-        background-color: #ffc107;
-        color: black;
-    }
-    .btn-success:hover {
-        background-color: #28a745;
-        color: black;
-    }
-</style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: auto;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .form-group input {
+            width: 45%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn:hover { opacity: 0.8; }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            display: none;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #343a40;
+            color: white;
+        }
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 14px;
+            margin: 2px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h2 class="text-center text-primary title">Ürün Takip Sistemi</h2>
-        <div class="mb-3">
-            <input type="text" id="product" class="form-control" placeholder="Ürün Adı">
+        <h2>Ürün Takip Sistemi</h2>
+        <div class="form-group">
+            <input type="text" id="urunAdi" placeholder="Ürün Adı">
+            <input type="text" id="urunAdet" placeholder="Adet (Örn: 10 koli)">
         </div>
-        <div class="mb-3">
-            <input type="text" id="quantity" class="form-control" placeholder="Adet">
-        </div>
-        <div class="d-grid gap-2">
-            <button class="btn btn-primary" onclick="addProduct()">Kaydet</button>
-            <button class="btn btn-success" onclick="showProducts()">Ürünleri Göster</button>
-            <button class="btn btn-danger" onclick="clearProducts()">Tüm Verileri Sil</button>
-            <button class="btn btn-warning" onclick="showFinishedProducts()">Biten Ürünleri Göster</button>
-            <button class="btn btn-info" onclick="showMissingList()">Eksik LİSTESİ GÖRÜNTÜLE</button>
-        </div>
-
-        <h3 class="text-center text-primary mt-3">Ürün Listesi</h3>
-        <table class="table table-striped mt-3">
-            <thead class="table-dark">
+        <button class="btn btn-success" onclick="urunEkle()">Ürünü Kaydet</button>
+        <button class="btn btn-primary" onclick="urunleriGoster()">Ürünleri Göster</button>
+        
+        <table id="urunTablosu">
+            <thead>
                 <tr>
                     <th>Ürün Adı</th>
                     <th>Adet</th>
-                    <th>Geliş Tarihi</th>
+                    <th>Tarih</th>
                     <th>İşlemler</th>
                 </tr>
             </thead>
-            <tbody id="productTable"></tbody>
+            <tbody></tbody>
         </table>
 
-        <h3 class="text-center text-primary mt-4">Biten Ürünler ve Geçen Süre</h3>
-        <table class="table table-striped mt-3">
-            <thead class="table-dark">
-                <tr>
-                    <th>Ürün Adı</th>
-                    <th>Hafta</th>
-                    <th>Gün</th>
-                    <th>Ay</th>
-                </tr>
-            </thead>
-            <tbody id="finishedTable"></tbody>
-        </table>
-
-        <h3 class="text-center text-primary mt-4">Eksik Ürünler</h3>
-        <table class="table table-striped mt-3">
-            <thead class="table-dark">
-                <tr>
-                    <th>Ürün Adı</th>
-                    <th>Geçen Süre (Gün)</th>
-                    <th>Geçen Süre (Hafta)</th>
-                    <th>Geçen Süre (Ay)</th>
-                </tr>
-            </thead>
-            <tbody id="missingTable"></tbody>
-        </table>
+        <button class="btn btn-danger" onclick="tumVerileriSil()">Tüm Verileri Sil</button>
     </div>
 
     <script>
-        function addProduct() {
-            const product = document.getElementById('product').value.trim();
-            const quantity = document.getElementById('quantity').value.trim();
-            const date = new Date().toISOString();
+        let urunler = JSON.parse(localStorage.getItem("urunler")) || [];
 
-            if (product && quantity) {
-                const products = JSON.parse(localStorage.getItem('products')) || [];
-                products.push({ product, quantity, date });
-                localStorage.setItem('products', JSON.stringify(products));
-                alert('Ürün başarıyla kaydedildi!');
-                document.getElementById('product').value = '';
-                document.getElementById('quantity').value = '';
+        function urunEkle() {
+            let urunAdi = document.getElementById("urunAdi").value.trim();
+            let urunAdet = document.getElementById("urunAdet").value.trim();
+
+            if (urunAdi === "" || urunAdet === "") {
+                alert("Lütfen ürün adı ve adet girin!");
+                return;
+            }
+
+            let tarih = new Date().toLocaleString();
+            urunler.push({ id: Date.now(), ad: urunAdi, adet: urunAdet, tarih });
+
+            localStorage.setItem("urunler", JSON.stringify(urunler));
+            document.getElementById("urunAdi").value = "";
+            document.getElementById("urunAdet").value = "";
+            alert("Ürün kaydedildi! Ürünleri görmek için 'Ürünleri Göster' butonuna basın.");
+        }
+
+        function urunleriGoster() {
+            let tablo = document.getElementById("urunTablosu");
+            let tbody = tablo.getElementsByTagName("tbody")[0];
+
+            tbody.innerHTML = "";
+
+            urunler = JSON.parse(localStorage.getItem("urunler")) || [];
+
+            if (urunler.length === 0) {
+                alert("Henüz eklenmiş bir ürün yok.");
+                return;
+            }
+
+            urunler.forEach(urun => {
+                let satir = tbody.insertRow();
+                satir.innerHTML = `
+                    <td>${urun.ad}</td>
+                    <td>${urun.adet}</td>
+                    <td>${urun.tarih}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="duzenle(${urun.id})">Düzenle</button>
+                        <button class="btn btn-sm btn-danger" onclick="sil(${urun.id})">Sil</button>
+                    </td>
+                `;
+            });
+
+            tablo.style.display = "table";
+        }
+
+        function duzenle(id) {
+            let urun = urunler.find(urun => urun.id === id);
+            let yeniAd = prompt("Yeni ürün adı:", urun.ad);
+            let yeniAdet = prompt("Yeni adet:", urun.adet);
+
+            if (yeniAd && yeniAdet) {
+                urun.ad = yeniAd;
+                urun.adet = yeniAdet;
+                urun.tarih = new Date().toLocaleString();
+                localStorage.setItem("urunler", JSON.stringify(urunler));
+                urunleriGoster();
             } else {
-                alert('Lütfen tüm alanları doldurun!');
+                alert("Geçerli değerler girin!");
             }
         }
 
-        function showProducts() {
-            const products = JSON.parse(localStorage.getItem('products')) || [];
-            const table = document.getElementById('productTable');
-            table.innerHTML = '';
-
-            products.forEach(({ product, quantity, date }, index) => {
-                const formattedDate = new Date(date).toLocaleDateString('tr-TR');
-                const row = `
-                    <tr>
-                        <td>${product}</td>
-                        <td>${quantity}</td>
-                        <td>${formattedDate}</td>
-                        <td>
-                            <button class="btn btn-success" onclick="editProduct(${index})">Düzenle</button>
-                            <button class="btn btn-danger" onclick="deleteProduct(${index})">Sil</button>
-                            <button class="btn btn-warning" onclick="markAsFinished(${index})">Bitti</button>
-                        </td>
-                    </tr>
-                `;
-                table.innerHTML += row;
-            });
-        }
-
-        function markAsFinished(index) {
-            const products = JSON.parse(localStorage.getItem('products')) || [];
-            const product = products[index];
-            const finishedProducts = JSON.parse(localStorage.getItem('finishedProducts')) || [];
-            finishedProducts.push(product);
-
-            // Ürün bitmiş olarak işaretleniyor
-            products.splice(index, 1);
-            localStorage.setItem('products', JSON.stringify(products));
-            localStorage.setItem('finishedProducts', JSON.stringify(finishedProducts));
-
-            showProducts(); // Ürünleri tekrar göster
-            showFinishedProducts(); // Biten ürünleri göster
-        }
-
-        function showFinishedProducts() {
-            const finishedProducts = JSON.parse(localStorage.getItem('finishedProducts')) || [];
-            const table = document.getElementById('finishedTable');
-            table.innerHTML = '';
-
-            finishedProducts.forEach(({ product, date }, index) => {
-                const formattedDate = new Date(date).toLocaleDateString('tr-TR');
-                const currentDate = new Date();
-                const diffTime = currentDate - new Date(date);
-                const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                const weeks = Math.floor(days / 7);
-                const months = Math.floor(days / 30);
-
-                const row = `
-                    <tr>
-                        <td>${product}</td>
-                        <td>${weeks}</td>
-                        <td>${days}</td>
-                        <td>${months}</td>
-                    </tr>
-                `;
-                table.innerHTML += row;
-            });
-        }
-
-        function showMissingList() {
-            const finishedProducts = JSON.parse(localStorage.getItem('finishedProducts')) || [];
-            const missingTable = document.getElementById('missingTable');
-            missingTable.innerHTML = '';
-
-            finishedProducts.forEach(({ product, date }) => {
-                const currentDate = new Date();
-                const diffTime = currentDate - new Date(date);
-                const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                const weeks = Math.floor(days / 7);
-                const months = Math.floor(days / 30);
-
-                const row = `
-                    <tr>
-                        <td>${product}</td>
-                        <td>${days}</td>
-                        <td>${weeks}</td>
-                        <td>${months}</td>
-                    </tr>
-                `;
-                missingTable.innerHTML += row;
-            });
-        }
-
-        function deleteProduct(index) {
-            const products = JSON.parse(localStorage.getItem('products')) || [];
-            products.splice(index, 1);
-            localStorage.setItem('products', JSON.stringify(products));
-            showProducts();
-        }
-
-        function editProduct(index) {
-            const products = JSON.parse(localStorage.getItem('products')) || [];
-            const product = products[index];
-            document.getElementById('product').value = product.product;
-            document.getElementById('quantity').value = product.quantity;
-
-            // Kaydet butonu tıklandığında mevcut ürünü güncelle
-            document.querySelector('.btn-primary').textContent = 'Güncelle';
-            document.querySelector('.btn-primary').onclick = function() {
-                updateProduct(index);
-            };
-        }
-
-        function updateProduct(index) {
-            const updatedProduct = document.getElementById('product').value.trim();
-            const updatedQuantity = document.getElementById('quantity').value.trim();
-
-            if (updatedProduct && updatedQuantity) {
-                const products = JSON.parse(localStorage.getItem('products')) || [];
-                products[index] = { product: updatedProduct, quantity: updatedQuantity, date: products[index].date };
-                localStorage.setItem('products', JSON.stringify(products));
-                alert('Ürün başarıyla güncellendi!');
-                showProducts(); // Güncellenen ürünleri göster
-                document.getElementById('product').value = '';
-                document.getElementById('quantity').value = '';
-                document.querySelector('.btn-primary').textContent = 'Kaydet'; // Buton metnini eski haline getir
-                document.querySelector('.btn-primary').onclick = addProduct; // Kaydet işlevini eski haline getir
-            } else {
-                alert('Lütfen tüm alanları doldurun!');
+        function sil(id) {
+            if (confirm("Bu ürünü silmek istediğinize emin misiniz?")) {
+                urunler = urunler.filter(urun => urun.id !== id);
+                localStorage.setItem("urunler", JSON.stringify(urunler));
+                urunleriGoster();
             }
         }
 
-        function clearProducts() {
-            localStorage.removeItem('products');
-            localStorage.removeItem('finishedProducts');
-            showProducts();
-            showFinishedProducts();
-            showMissingList();
+        function tumVerileriSil() {
+            if (confirm("Tüm ürünleri silmek istediğinize emin misiniz?")) {
+                urunler = [];
+                localStorage.removeItem("urunler");
+                document.getElementById("urunTablosu").style.display = "none";
+            }
         }
     </script>
 </body>
