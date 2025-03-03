@@ -49,15 +49,22 @@
         .btn-success { background: #28a745; color: white; }
         .btn-danger { background: #dc3545; color: white; }
         .btn:hover { opacity: 0.8; }
+
+        /* Tablo için */
+        .table-container {
+            width: 100%;
+            overflow-x: auto; /* Mobilde kaydırmayı etkinleştir */
+            margin-top: 20px;
+            display: none; /* Başlangıçta gizli */
+        }
         table {
             width: 100%;
-            margin-top: 20px;
             border-collapse: collapse;
-            display: none;
+            margin: auto; /* Ortalamak için */
         }
         th, td {
             border: 1px solid #dee2e6;
-            padding: 10px;
+            padding: 12px; /* Satırları genişlet */
             text-align: center;
         }
         th {
@@ -69,29 +76,46 @@
             font-size: 14px;
             margin: 2px;
         }
+
+        /* Mobil uyumluluk */
+        @media (max-width: 600px) {
+            th, td {
+                padding: 8px;
+                font-size: 14px;
+            }
+            .form-group {
+                flex-direction: column;
+                gap: 5px;
+            }
+            .form-group input {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Ürün Takip Sistemi</h2>
+        <h2>STOK TAKİP©</h2>
         <div class="form-group">
             <input type="text" id="urunAdi" placeholder="Ürün Adı">
             <input type="text" id="urunAdet" placeholder="Adet (Örn: 10 koli)">
         </div>
         <button class="btn btn-success" onclick="urunEkle()">Ürünü Kaydet</button>
         <button class="btn btn-primary" onclick="urunleriGoster()">Ürünleri Göster</button>
-        
-        <table id="urunTablosu">
-            <thead>
-                <tr>
-                    <th>Ürün Adı</th>
-                    <th>Adet</th>
-                    <th>Tarih</th>
-                    <th>İşlemler</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+
+        <div class="table-container" id="tableContainer">
+            <table id="urunTablosu">
+                <thead>
+                    <tr>
+                        <th>Ürün Adı</th>
+                        <th>Adet</th>
+                        <th>Tarih</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
 
         <button class="btn btn-danger" onclick="tumVerileriSil()">Tüm Verileri Sil</button>
     </div>
@@ -120,6 +144,7 @@
         function urunleriGoster() {
             let tablo = document.getElementById("urunTablosu");
             let tbody = tablo.getElementsByTagName("tbody")[0];
+            let tableContainer = document.getElementById("tableContainer");
 
             tbody.innerHTML = "";
 
@@ -143,7 +168,7 @@
                 `;
             });
 
-            tablo.style.display = "table";
+            tableContainer.style.display = "block"; // Tabloyu görünür yap
         }
 
         function duzenle(id) {
@@ -174,7 +199,7 @@
             if (confirm("Tüm ürünleri silmek istediğinize emin misiniz?")) {
                 urunler = [];
                 localStorage.removeItem("urunler");
-                document.getElementById("urunTablosu").style.display = "none";
+                document.getElementById("tableContainer").style.display = "none"; // Tabloyu gizle
             }
         }
     </script>
